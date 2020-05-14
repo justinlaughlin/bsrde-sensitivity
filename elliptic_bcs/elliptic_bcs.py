@@ -2,25 +2,33 @@ from dolfin import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+import pygmsh
 
-# generate mesh centered at (0,0)
-#Nseg = 60 # 600
-#m = UnitSquareMesh(Nseg, Nseg)
-vm = Mesh('sphere5.xml')
-#vm = UnitCubeMesh(10,10,10)
+## Here we use pygmsh to auto generate meshes
+#g = pygmsh.built_in.Geometry()
+#g.add_ball([0,0,0], 1.0, lcar=0.1) # lcar is characteristic length
+#m = pygmsh.generate_mesh(g, prune_vertices=False)
+
+
+# Load in spherical mesh
+vm = Mesh('sphere.xml')
 m = BoundaryMesh(vm, 'exterior')
-#N = m.coordinates().shape[0]
-translation = Point((-0.5,-0.5))
-m.translate(translation)
+xmax_idx = np.argmax(m.coordinates()[:,0])
+xmax = m.coordinates()[xmax_idx,0]
+
 x = MeshCoordinates(m)
 dx = Measure("dx", m)
-#mf = MeshFunction('size_t', m, 2, 0)
-# class Boundary(SubDomain):
-#     def __init__(self, x, on_boundary):
-#         return on_boundary
-# boundary = Boundary()
+mf = MeshFunction('size_t', m, 0, 0)
+class Boundary(SubDomain):
+    def inside(self, x, on_boundary):
+        return x[0] > (xmax-DOLFIN_EPS)
+
+# mark bc
+#boundary = Boundary()
+#boundary.mark(mf, 4)
+#assert len(mf.where_equal(4)) == 1
 def boundary(x, on_boundary):
-    return on_boundary
+    return x[0] > 0.99
 
 # parameters
 k0 = 1
@@ -31,10 +39,7 @@ V = VectorFunctionSpace(m,"CG",1,dim=3)
 V0 = V.sub(0).collapse()
 
 def w_n(n):
-    #return (x[0]+x[1])/n
     return project((1+x[0]+x[1])/n, V0)
-    #return project((x[0]+x[1]+x[2])/n, V0)
-    #return project(Constant(0), V0)
 
 # compute Linf norm of absolute difference in solutions
 def compute_Linf(u_0, u_1):
@@ -45,7 +50,7 @@ def compute_Linf(u_0, u_1):
 def problem(V, n):
     u = Function(V)
     v = TestFunction(V)
-    bc = DirichletBC(V,Constant((0,0,0)), boundary)
+    bc = DirichletBC(V,as_vector([x[0],x[0],x[0]]), boundary)
     #bc = []
     
     jf = k0*u[0]*u[1]
@@ -58,7 +63,10 @@ def problem(V, n):
 
     return u
 
-nvec = [1,2,3,4,5,6,7,8,9,10,20,30,50,1e2,1e3,1e4,1e5,1e6,1e7,1e8,1e9]
+
+
+
+nvec = [1,2,3,4,5,6,7,8,9,10,20,30,50,100,1e3,1e4,1e5,1e6]
 uvec = []
 uLinfvec = []
 wLinfvec = []
@@ -69,9 +77,10 @@ for idx, n in enumerate(nvec):
         continue
     uLinfvec.append(compute_Linf(uvec[idx], uvec[idx-1]))
     wLinfvec.append(compute_Linf(w_n(nvec[idx]), w_n(nvec[idx-1])))
-#    F0 = inner(grad(u), grad(v))*dx - (j*v[0] + j*v[1] - j*v[2] + w_n(n)*(v[0]+v[1]+v[2]))*dx
-#    solve(F0==0, u, bc)
-#    File(f'u_n={n}.pvd') << u
+
+#File(f'u_n={n}.pvd') << u
+
+
 
 x_equals_y = np.linspace(0,max(wLinfvec),10000)
 
@@ -86,7 +95,6 @@ text0 = f"slope = {slope:.4f}\nintercept = {intercept:.4f}\n$r^2$ = {(r_value**2
 ax0.text(0.2,0.8,text0,horizontalalignment='center', 
          verticalalignment='center', transform=ax0.transAxes)
 
-
 # log
 ax1 = plt.subplot(1,2,2)
 ax1.plot(np.log10(wLinfvec), np.log10(uLinfvec), 'o')
@@ -99,10 +107,4 @@ ax1.text(0.2,0.8,text1,horizontalalignment='center',
 #ax1.plot(np.log10(x_equals_y), np.log10(x_equals_y), ':')
 
 plt.show()
-
-#slope, intercept, r_value, p_value, std_err = stats.linregress(wLinfvec, uLinfvec)
-
-
-
-
 
