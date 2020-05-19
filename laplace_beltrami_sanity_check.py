@@ -5,10 +5,9 @@ from scipy import stats
 import pygmsh
 
 # Here we use pygmsh to auto generate meshes
-g = pygmsh.built_in.Geometry()
-g.add_ball([0,0,0], 1.0, lcar=0.1) # lcar is characteristic length
-m = pygmsh.generate_mesh(g, prune_vertices=False)
-
+#g = pygmsh.built_in.Geometry()
+#g.add_ball([0,0,0], 1.0, lcar=0.1) # lcar is characteristic length
+#m = pygmsh.generate_mesh(g, prune_vertices=False)
 
 # Load in spherical mesh
 vm = Mesh('sphere.xml')
