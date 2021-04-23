@@ -26,7 +26,7 @@ def compute_Linf(u_0, u_1):
 
 def problem(n):
     # mesh
-    mtot    = Mesh("inner_outer_balls.xml")
+    mtot    = Mesh("inner_outer_balls.xml") # 
     x       = MeshCoordinates(mtot)
     mf3     = MeshFunction('size_t', mtot, 3, mtot.domains())
     mf2     = MeshFunction('size_t', mtot, 2, mtot.domains())
@@ -114,8 +114,8 @@ def problem(n):
     return u_in, u_out, w_in(n)
 
 
-nvec           = [1,3,10,30,1e2,3e2,1e3,3e3,1e4]
-#nvec = [1]
+#nvec           = [1,3,10,30,1e2,3e2,1e3,3e3,1e4]
+nvec = [10]
 #nvec           = [1e2, 3e2, 1e3]
 uin_vec        = []
 uout_vec       = []
