@@ -32,7 +32,7 @@ def get_submeshes(vmesh):
     emap_n = bmesh.entity_map(surfaceDim)
     bmesh_emap_n = deepcopy(emap_n.array())
 
-    vmf = MeshFunction('size_t', vmesh, 
+    #vmf = MeshFunction('size_t', vmesh, )
 
 #def problem():
 # mesh
@@ -44,8 +44,11 @@ m_in    = SubMesh(mtot,mf3,3)
 m_out   = SubMesh(mtot,mf3,1)
 mf2_out = MeshFunction('size_t', m_out, 2, m_out.domains())
 
-m_b     = BoundaryMesh(m_out, 'exterior')
-m_b     = SubMesh(m_out,mf2_out,2)
+
+mb     = BoundaryMesh(m_out, 'exterior')
+mb
+mb2    = SubMesh(mtot,mf2,2)
+mb4    = SubMesh(mb,mfb,4)
 
 # time stepping
 dt      = 0.05
